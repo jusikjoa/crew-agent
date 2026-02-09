@@ -3,6 +3,7 @@ AI Agent Implementation
 LangChain-based AI Agent with custom tools
 """
 import os
+from datetime import datetime
 from typing import List
 from dotenv import load_dotenv
 
@@ -16,12 +17,23 @@ from tools import WebSearchTool, APICallerTool
 # Load environment variables
 load_dotenv()
 
-SYSTEM_PROMPT = """You are a helpful AI assistant.
-You can use the following tools to help answer questions:
+def _build_system_prompt() -> str:
+    today = datetime.now().strftime("%Y-%m-%d %A")
+    return f"""You are a helpful AI assistant.
+Today's date is {today}.
+You have access to the following tools:
 - web_search: Search the web for information
 - api_caller: Call external APIs
 
-Use tools when necessary to provide accurate and up-to-date information."""
+IMPORTANT RULES:
+1. For questions about current date/time, use the date provided above. Do NOT search for it.
+2. Always use the web_search tool FIRST before answering any factual question.
+   Do NOT rely on your internal knowledge for facts, news, statistics, or any information that could be outdated.
+   Only skip web_search for general conversation, opinions, or tasks that clearly don't need search (e.g. translation, math, code writing, date/time).
+3. After receiving search results, you MUST synthesize the information and provide a direct, detailed answer in your own words.
+   Do NOT just list links or say "check this link". Extract the key information from the search results and explain it clearly to the user.
+   Include source links only as references at the end of your answer, not as the main content.
+When in doubt, search first."""
 
 
 class CrewAgent:
@@ -62,7 +74,7 @@ class CrewAgent:
         self.llm_with_tools = self.llm.bind_tools(self.tools)
 
         # Conversation history
-        self.messages: List = [SystemMessage(content=SYSTEM_PROMPT)]
+        self.messages: List = [SystemMessage(content=_build_system_prompt())]
 
     def _setup_tools(self) -> List[BaseTool]:
         """Setup available tools"""
@@ -143,7 +155,7 @@ class CrewAgent:
 
     def clear_history(self):
         """대화 히스토리 초기화"""
-        self.messages = [SystemMessage(content=SYSTEM_PROMPT)]
+        self.messages = [SystemMessage(content=_build_system_prompt())]
 
     async def arun(self, query: str) -> str:
         """

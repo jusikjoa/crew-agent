@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(py -m pip install:*)",
+      "Bash(where:*)",
+      "Bash(\"C:\\\\Users\\\\brian\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe\" -m pip install duckduckgo-search langchain langchain-openai langchain-community python-dotenv requests pydantic)"
     ]
   }
 }

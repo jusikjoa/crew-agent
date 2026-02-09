@@ -30,10 +30,10 @@ class APICallerTool(BaseTool):
             # 입력 파싱
             request_data = json.loads(query)
 
-            url = request_data.get("url")
+            url = request_data.get("url") or request_data.get("query")
             method = request_data.get("method", "GET").upper()
             headers = request_data.get("headers", {})
-            data = request_data.get("data", {})
+            data = request_data.get("data", request_data.get("body", {}))
             params = request_data.get("params", {})
 
             if not url:
