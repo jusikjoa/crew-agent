@@ -16,6 +16,13 @@ from tools import WebSearchTool, APICallerTool
 # Load environment variables
 load_dotenv()
 
+SYSTEM_PROMPT = """You are a helpful AI assistant.
+You can use the following tools to help answer questions:
+- web_search: Search the web for information
+- api_caller: Call external APIs
+
+Use tools when necessary to provide accurate and up-to-date information."""
+
 
 class CrewAgent:
     """Crew AI Agent Class"""
@@ -54,6 +61,9 @@ class CrewAgent:
         # Bind tools to LLM
         self.llm_with_tools = self.llm.bind_tools(self.tools)
 
+        # Conversation history
+        self.messages: List = [SystemMessage(content=SYSTEM_PROMPT)]
+
     def _setup_tools(self) -> List[BaseTool]:
         """Setup available tools"""
         tools = [
@@ -73,18 +83,10 @@ class CrewAgent:
             Agent response
         """
         try:
-            messages = [
-                SystemMessage(content="""You are a helpful AI assistant.
-You can use the following tools to help answer questions:
-- web_search: Search the web for information
-- api_caller: Call external APIs
-
-Use tools when necessary to provide accurate and up-to-date information."""),
-                HumanMessage(content=query)
-            ]
+            self.messages.append(HumanMessage(content=query))
 
             # Call LLM with tools
-            response = self.llm_with_tools.invoke(messages)
+            response = self.llm_with_tools.invoke(self.messages)
 
             if self.verbose:
                 print(f"\nResponse: {response}")
@@ -119,23 +121,29 @@ Use tools when necessary to provide accurate and up-to-date information."""),
 
                 # Add tool results to messages and get final response
                 if tool_results:
-                    messages.append(response)
+                    self.messages.append(response)
 
                     for i, result in enumerate(tool_results):
-                        messages.append(
+                        self.messages.append(
                             ToolMessage(
                                 content=result,
                                 tool_call_id=response.tool_calls[i]['id']
                             )
                         )
 
-                    final_response = self.llm_with_tools.invoke(messages)
+                    final_response = self.llm_with_tools.invoke(self.messages)
+                    self.messages.append(final_response)
                     return final_response.content
 
+            self.messages.append(response)
             return response.content
 
         except Exception as e:
             return f"Error: {str(e)}"
+
+    def clear_history(self):
+        """대화 히스토리 초기화"""
+        self.messages = [SystemMessage(content=SYSTEM_PROMPT)]
 
     async def arun(self, query: str) -> str:
         """
