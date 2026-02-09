@@ -52,7 +52,7 @@ class WebSearchTool(BaseTool):
         """검색 실행"""
         try:
             with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=10))
+                results = list(ddgs.text(query, region="kr-kr", max_results=10))
 
             if not results:
                 return f"'{query}'에 대한 검색 결과가 없습니다."
@@ -66,7 +66,7 @@ class WebSearchTool(BaseTool):
 
             # 상위 3개 결과의 페이지 본문 크롤링
             detailed = []
-            for item in results[:3]:
+            for item in results[:5]:
                 url = item.get("href", "")
                 if url:
                     page_text = _fetch_page_text(url)
