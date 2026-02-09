@@ -6,7 +6,7 @@ LangChain을 사용한 AI Agent 서비스
 
 - **GPT-4 기반 AI Agent**: OpenAI의 최신 모델을 활용한 지능형 에이전트
 - **자동 도구 선택**: 질문에 따라 필요한 도구를 자동으로 선택하고 실행
-- **웹 검색**: Google Custom Search API를 통한 실시간 정보 검색
+- **웹 검색**: DuckDuckGo를 통한 실시간 정보 검색 (API 키 불필요)
 - **API 호출**: 외부 REST API 통합 및 데이터 수집
 - **대화형 인터페이스**: CLI를 통한 실시간 상호작용
 - **Python 3.13 호환**: 최신 Python 버전 지원
@@ -51,10 +51,6 @@ cp .env.example .env
 `.env` 파일 내용:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-
-# 선택사항: 웹 검색 기능을 사용하려면 추가
-GOOGLE_API_KEY=your_google_api_key_here
-GOOGLE_CSE_ID=your_custom_search_engine_id_here
 ```
 
 ### 3. Agent 테스트
@@ -85,7 +81,6 @@ pip install -r requirements.txt
 
 - Python 3.9 이상 (Python 3.13 테스트 완료)
 - OpenAI API 키 (필수)
-- Google Custom Search API 키 (웹 검색 기능 사용 시)
 
 ## 사용 방법
 
@@ -173,18 +168,12 @@ Agent가 자동으로 사용할 수 있는 도구들입니다.
 
 #### WebSearchTool
 
-Google Custom Search API를 사용한 실시간 웹 검색 도구
+DuckDuckGo를 사용한 실시간 웹 검색 도구 (API 키 불필요)
 
 **기능:**
 - 최신 정보 검색
 - 상위 5개 결과 반환
 - 제목, 설명, 링크 포함
-
-**필요한 설정:**
-```env
-GOOGLE_API_KEY=your_api_key
-GOOGLE_CSE_ID=your_search_engine_id
-```
 
 #### APICallerTool
 
@@ -283,20 +272,6 @@ from agent import create_agent
 4. `.env` 파일에 키 추가
 
 **요금**: 사용량 기반 과금 (GPT-4: ~$0.03/1K tokens)
-
-### Google Custom Search API (선택)
-
-웹 검색 기능을 사용하려면:
-
-1. [Google Cloud Console](https://console.cloud.google.com/) 접속
-2. 프로젝트 생성
-3. Custom Search API 활성화
-4. API 키 생성
-5. [Programmable Search Engine](https://cse.google.com/cse/) 에서 검색 엔진 생성
-6. 검색 엔진 ID(CSE ID) 확인
-7. `.env` 파일에 키와 ID 추가
-
-**무료 할당량**: 일 100회 검색
 
 ## 개발 가이드
 
@@ -409,7 +384,7 @@ https://jsonplaceholder.typicode.com/posts/1
 print(response)
 ```
 
-### 웹 검색 예제 (Google API 필요)
+### 웹 검색 예제
 
 ```python
 agent = create_agent(verbose=True)
@@ -436,7 +411,7 @@ print(response)
 - **LangChain**: AI Agent 프레임워크
 - **OpenAI GPT-4**: 대형 언어 모델
 - **Python 3.9+**: 프로그래밍 언어
-- **Google Custom Search**: 웹 검색 API
+- **DuckDuckGo**: 웹 검색 (API 키 불필요)
 - **Requests**: HTTP 클라이언트
 
 ## 참고 자료

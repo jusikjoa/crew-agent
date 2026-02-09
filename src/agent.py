@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import BaseTool
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
 from tools import WebSearchTool, APICallerTool
 
@@ -120,7 +120,6 @@ Use tools when necessary to provide accurate and up-to-date information."""),
                 # Add tool results to messages and get final response
                 if tool_results:
                     messages.append(response)
-                    from langchain_core.messages import ToolMessage
 
                     for i, result in enumerate(tool_results):
                         messages.append(
