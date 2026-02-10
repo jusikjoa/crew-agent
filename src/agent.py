@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.tools import BaseTool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-from tools import WebSearchTool, APICallerTool
+from tools import WebSearchTool, APICallerTool, GraduationSimTool
 
 
 # Load environment variables
@@ -24,6 +24,7 @@ Today's date is {today}.
 You have access to the following tools:
 - web_search: Search the web for information
 - api_caller: Call external APIs
+- graduation_simulation: Run KAIST graduation simulation
 
 IMPORTANT RULES:
 1. For questions about current date/time, use the date provided above. Do NOT search for it.
@@ -81,6 +82,7 @@ class CrewAgent:
         tools = [
             WebSearchTool(),
             APICallerTool(),
+            GraduationSimTool(),
         ]
         return tools
 
@@ -123,6 +125,8 @@ class CrewAgent:
                             elif tool_name == "api_caller":
                                 import json
                                 result = tool._run(json.dumps(tool_input))
+                            elif tool_name == "graduation_simulation":
+                                result = tool._run(tool_input.get('query', ''))
                             else:
                                 result = tool._run(str(tool_input))
 
