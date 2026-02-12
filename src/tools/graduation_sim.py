@@ -58,6 +58,9 @@ class GraduationSimTool(BaseTool):
                 with open(COOKIE_PATH, "w") as f:
                     json.dump(cookies, f)
 
+                # 다이얼로그(alert/confirm) 자동 수락
+                page.on("dialog", lambda d: d.accept())
+
                 # ── Step 3: "학사" 메뉴 클릭 ──
                 print("[Step 3] '학사' 메뉴 클릭...")
                 self._click(page, "학사")
@@ -73,14 +76,10 @@ class GraduationSimTool(BaseTool):
                 self._click(page, "졸업시뮬레이션")
                 page.wait_for_timeout(3000)
 
-                # ── Step 6~8: 다이얼로그 자동 수락 + 실행 버튼 클릭 ──
-                # "모의졸업사정을 실행하시겠습니까?" → 확인
-                # "처리되었습니다" → 확인
-                page.on("dialog", lambda d: d.accept())
-
+                # ── Step 6~8: 실행 버튼 클릭 + 알림 자동 수락 ──
                 print("[Step 6] '졸업시뮬레이션 실행' 버튼 클릭...")
                 self._click(page, "졸업시뮬레이션 실행")
-                page.wait_for_timeout(10000)
+                page.wait_for_timeout(3000)
 
                 # ── Step 9: 결과 스크래핑 ──
                 print("[Step 9] 결과 수집 중...\n")
@@ -112,8 +111,67 @@ class GraduationSimTool(BaseTool):
             page.wait_for_timeout(1000)
         raise PlaywrightTimeout(f"{timeout}초 내에 '{keyword}' URL을 벗어나지 못했습니다.")
 
+    def _close_popups(self, page):
+        """팝업/모달/새 창 닫기"""
+        # 새 탭/창이 열렸으면 닫기
+        while len(page.context.pages) > 1:
+            extra = page.context.pages[-1]
+            print(f"  → 새 창 닫기: {extra.url}")
+            extra.close()
+
+        # 닫기/확인 버튼 탐색
+        close_selectors = [
+            'button:has-text("닫기")',
+            'button:has-text("Close")',
+            'button:has-text("확인")',
+            'a:has-text("닫기")',
+            'a:has-text("Close")',
+            'button.close',
+            'button[aria-label="Close"]',
+            'button[aria-label="닫기"]',
+            'a.close',
+            'img[alt="닫기"]',
+            'img[alt="close"]',
+            'button:has-text("×")',
+            'span:has-text("×")',
+            '[class*="close"]:visible',
+            '[class*="Close"]:visible',
+            '[class*="popup"] button',
+            '[class*="layer"] button:has-text("닫기")',
+        ]
+        for frame in page.frames:
+            for sel in close_selectors:
+                try:
+                    els = frame.locator(sel)
+                    for i in range(els.count()):
+                        el = els.nth(i)
+                        if el.is_visible(timeout=300):
+                            el.click()
+                            print(f"  → 팝업 닫기: {sel}")
+                            page.wait_for_timeout(500)
+                            return  # 하나 닫으면 다시 _click에서 재시도
+                except Exception:
+                    continue
+
     def _click(self, page, text: str):
-        """모든 프레임에서 텍스트가 포함된 요소를 찾아 클릭"""
+        """모든 프레임에서 텍스트가 포함된 요소를 찾아 클릭. 못 찾으면 팝업 닫고 재시도."""
+        # 1차 시도
+        if self._try_click(page, text):
+            return
+
+        # 못 찾으면 팝업 닫고 재시도
+        print(f"  → '{text}' 못 찾음. 팝업 확인 중...")
+        self._close_popups(page)
+        page.wait_for_timeout(1000)
+
+        # 2차 시도
+        if self._try_click(page, text):
+            return
+
+        print(f"  → '{text}' 요소를 찾지 못했습니다.")
+
+    def _try_click(self, page, text: str) -> bool:
+        """모든 프레임에서 텍스트 요소 클릭 시도"""
         for frame in page.frames:
             for tag in ["a", "button", "span", "input", "li", "div"]:
                 try:
@@ -121,10 +179,10 @@ class GraduationSimTool(BaseTool):
                     if el.is_visible(timeout=1000):
                         el.click()
                         print(f"  → '{text}' 클릭 완료 (frame: {frame.name or 'main'})")
-                        return
+                        return True
                 except Exception:
                     continue
-        print(f"  → '{text}' 요소를 찾지 못했습니다.")
+        return False
 
     def _scrape(self, page) -> str:
         """모든 프레임에서 테이블 데이터 수집"""
