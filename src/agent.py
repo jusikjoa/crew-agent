@@ -11,7 +11,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.tools import BaseTool
 from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 
-from tools import WebSearchTool, APICallerTool, GraduationSimTool
+from .tools import WebSearchTool, APICallerTool, GraduationSimTool
 
 
 # Load environment variables
