@@ -1,4 +1,4 @@
-# Crew AI Agent
+# KAIST Assistant AI Agent
 
 LangChain을 사용한 AI Agent 서비스
 
